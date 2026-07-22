@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kartu Takdir - Ramalan Kuno</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: radial-gradient(circle at center, #1a1a2e 0%, #0f0f1a 100%);
+            color: #d4af37; /* Gold color for text */
+            font-family: 'Cormorant Garamond', serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        h1, h2, .mystic-title {
+            font-family: 'Cinzel', serif;
+        }
+
+        /* Card 3D Flip Styles */
+        .card-container {
+            perspective: 1000px;
+            width: 260px;
+            height: 400px;
+            margin: 0 auto;
+            cursor: pointer;
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.8s cubic-bezier(0.4, 0.2, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+
+        .card-container.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8), inset 0 0 15px rgba(212, 175, 55, 0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #5a4a1c;
+        }
+
+        .card-front {
+            background: linear-gradient(135deg, #111, #222);
+            background-image: 
+                radial-gradient(circle at center, transparent 30%, #000 100%),
+                repeating-linear-gradient(45deg, #2a2010 0, #2a2010 2px, transparent 2px, transparent 8px);
+        }
+
+        .card-front::after {
+            content: "✦";
+            font-size: 4rem;
+            color: #8c7322;
+            animation: pulse 2s infinite alternate;
+        }
+
+        .card-front::before {
+            content: "";
+            position: absolute;
+            top: 10px; bottom: 10px; left: 10px; right: 10px;
+            border: 1px solid #8c7322;
+            border-radius: 8px;
+        }
+
+        .card-back {
+            background: linear-gradient(to bottom, #1a1a1a, #0a0a0a);
+            transform: rotateY(180deg);
+            padding: 20px;
+        }
+
+        .card-back::before {
+            content: "";
+            position: absolute;
+            top: 8px; bottom: 8px; left: 8px; right: 8px;
+            border: 1px dashed #d4af37;
+            border-radius: 6px;
+            pointer-events: none;
+        }
+
+        .symbol-display {
+            font-size: 5rem;
+            text-shadow: 0 0 20px rgba(212, 175, 55, 0.6);
+            margin-bottom: 20px;
+            color: #eaddb6;
+        }
+
+        .typewriter {
+            min-height: 120px;
+            font-size: 1.25rem;
+            line-height: 1.6;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            font-style: italic;
+        }
+
+        .blinking-cursor::after {
+            content: '|';
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.9); opacity: 0.7; }
+            100% { transform: scale(1.1); opacity: 1; text-shadow: 0 0 15px #d4af37; }
+        }
+
+        /* Ambient floating particles */
+        .particle {
+            position: fixed;
+            background: #d4af37;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0;
+            animation: float-up 5s linear infinite;
+        }
+
+        @keyframes float-up {
+            0% { transform: translateY(100vh) scale(0); opacity: 0; }
+            20% { opacity: 0.5; }
+            80% { opacity: 0.3; }
+            100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+        }
+
+        .action-btn {
+            background: transparent;
+            border: 1px solid #d4af37;
+            color: #d4af37;
+            transition: all 0.3s ease;
+        }
+        
+        .action-btn:hover {
+            background: #d4af37;
+            color: #0f0f1a;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.5);
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center relative p-4">
+
+    <!-- Ambient Particles -->
+    <div id="particles" class="fixed inset-0 pointer-events-none z-0"></div>
+
+    <div class="z-10 w-full max-w-2xl text-center flex flex-col items-center">
+        <h1 class="mystic-title text-4xl md:text-5xl mb-2 font-bold tracking-widest uppercase">Bilik Takdir</h1>
+        <p class="text-lg md:text-xl text-[#8c7322] italic mb-10">Pusaran waktu memanggil namamu... Sentuhlah kartunya untuk menguak tabir nasib hari ini.</p>
+
+        <div class="card-container mb-8" id="tarotCard" onclick="flipCard()">
+            <div class="card-inner" id="cardInner">
+                <!-- Belakang Kartu (Yang pertama dilihat) -->
+                <div class="card-front">
+                    <div class="absolute top-4 text-xs font-bold mystic-title tracking-widest text-[#8c7322]">TARIK</div>
+                    <div class="absolute bottom-4 text-xs font-bold mystic-title tracking-widest text-[#8c7322]">NASIBMU</div>
+                </div>
+                <!-- Depan Kartu (Hasil Ramalan) -->
+                <div class="card-back">
+                    <div id="cardSymbol" class="symbol-display"></div>
+                    <h2 id="cardTitle" class="mystic-title text-xl font-bold mb-2"></h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="w-full max-w-lg mx-auto px-4">
+            <div id="prophecyText" class="typewriter blinking-cursor text-center text-[#eaddb6]"></div>
+        </div>
+
+        <button id="resetBtn" onclick="resetCard()" class="action-btn mystic-title mt-8 px-6 py-2 rounded uppercase tracking-widest opacity-0 pointer-events-none transition-opacity duration-500">
+            Tanya Lagi Pada Semesta
+        </button>
+    </div>
+
+    <script>
+        // Database Ramalan Kuno
+        const prophecies = [
+            // RAMALAN BAIK
+            {
+                type: "baik",
+                symbol: "𓆣",
+                title: "Sang Kumbang Emas",
+                text: "Sang Kumbang Emas merayap keluar dari abu masa lalu. Kebangkitan menantimu hari ini; apa yang kau kira telah mati dan layu, akan mekar kembali membawa kejayaan abadi."
+            },
+            {
+                type: "baik",
+                symbol: "⚖️",
+                title: "Neraca Keadilan",
+                text: "Timbangan semesta berayun ke arah cahaya. Segala budi baikmu yang tak terlihat oleh mata manusia, hari ini akan dibayar tunai oleh tangan-tangan gaib."
+            },
+            {
+                type: "baik",
+                symbol: "🗝️",
+                title: "Kunci Perak",
+                text: "Kunci perak gaib telah diturunkan ke telapak tanganmu. Pintu dimensi menuju kebijaksanaan dan rezeki yang selama ini terkunci, kini terbuka teramat lebar."
+            },
+            {
+                type: "baik",
+                symbol: "⚜️",
+                title: "Teratai Suci",
+                text: "Bunga suci merekah anggun di atas rawa yang paling kotor sekalipun. Kemurnian hatimu akan menjadi perisai mutlak yang melindungimu dari bisa dan racun duniawi."
+            },
+            {
+                type: "baik",
+                symbol: "👁️‍🗨️",
+                title: "Mata Kebenaran",
+                text: "Mata batinmu kian tajam menembus ilusi. Seseorang akan datang membawa pundi-pundi kebaikan, dan kau akan menyadarinya sebelum bayangannya menyentuh lantai."
+            },
+            // RAMALAN BURUK
+            {
+                type: "buruk",
+                symbol: "𓁿",
+                title: "Mata Yang Menatap",
+                text: "Mata yang tak pernah terpejam sedang menatapmu dari balik tabir kegelapan. Rahasia yang kau simpan erat dalam bayang-bayang bersiap mengoyak kedamaianmu hari ini."
+            },
+            {
+                type: "buruk",
+                symbol: "⏳",
+                title: "Pasir Penghabisan",
+                text: "Butiran pasir waktu merosot ke bawah tanpa henti. Kesempatan emas akan berlalu menjadi debu hampa jika tanganmu terus membeku dalam keraguan dan ketakutan."
+            },
+            {
+                type: "buruk",
+                symbol: "🕸️",
+                title: "Jerat Sang Penenun",
+                text: "Laba-laba tua nan purba tengah menenun jaring di persimpangan nasibmu. Berhati-hatilah melangkah, sebab satu pijakan yang salah akan membuatmu terjerat tipu daya."
+            },
+            {
+                type: "buruk",
+                symbol: "🥀",
+                title: "Kelopak Darah",
+                text: "Kelopak merah gugur mencium tanah yang tandus. Kesedihan tak diundang akan datang bertamu, mencoba merenggut kebahagiaan fana yang sedang kau genggam erat."
+            },
+            {
+                type: "buruk",
+                symbol: "🐍",
+                title: "Lidah Berbisa",
+                text: "Ular melingkar di dahan pohon kehidupan. Kata-kata manis yang dibisikkan ke telingamu hari ini membawa racun pekat yang dapat mematikan jiwamu. Jangan mudah percaya."
+            }
+        ];
+
+        let isFlipped = false;
+        let isTyping = false;
+        let typewriterTimeout;
+
+        function flipCard() {
+            if (isFlipped || isTyping) return; // Prevent clicking while flipped or typing
+            
+            isFlipped = true;
+            document.getElementById('tarotCard').classList.add('flipped');
+            
+            // Pick a random prophecy
+            const randomIndex = Math.floor(Math.random() * prophecies.length);
+            const selectedProphecy = prophecies[randomIndex];
+            
+            // Set card content
+            document.getElementById('cardSymbol').innerText = selectedProphecy.symbol;
+            
+            // Let the card flip first (0.8s transition), then start typewriter
+            setTimeout(() => {
+                document.getElementById('cardTitle').innerText = selectedProphecy.title;
+                typeWriterEffect(selectedProphecy.text);
+            }, 800);
+        }
+
+        function typeWriterEffect(text) {
+            isTyping = true;
+            const textElement = document.getElementById('prophecyText');
+            textElement.innerText = '';
+            let i = 0;
+            
+            function type() {
+                if (i < text.length) {
+                    textElement.innerHTML += text.charAt(i);
+                    i++;
+                    typewriterTimeout = setTimeout(type, 40); // Kecepatan ketik (ms)
+                } else {
+                    isTyping = false;
+                    textElement.classList.remove('blinking-cursor');
+                    // Show reset button
+                    const resetBtn = document.getElementById('resetBtn');
+                    resetBtn.classList.remove('opacity-0', 'pointer-events-none');
+                }
+            }
+            type();
+        }
+
+        function resetCard() {
+            if (isTyping) return;
+            
+            isFlipped = false;
+            document.getElementById('tarotCard').classList.remove('flipped');
+            
+            const resetBtn = document.getElementById('resetBtn');
+            resetBtn.classList.add('opacity-0', 'pointer-events-none');
+            
+            // Clear text after card flips back
+            setTimeout(() => {
+                document.getElementById('prophecyText').innerText = '';
+                document.getElementById('prophecyText').classList.add('blinking-cursor');
+                document.getElementById('cardTitle').innerText = '';
+                document.getElementById('cardSymbol').innerText = '';
+            }, 500);
+        }
+
+        // Generate Ambient Particles
+        const particlesContainer = document.getElementById('particles');
+        const particleCount = 20;
+
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.classList.add('particle');
+            
+            // Random properties
+            const size = Math.random() * 4 + 1; // 1px to 5px
+            const left = Math.random() * 100; // 0% to 100%
+            const duration = Math.random() * 5 + 3; // 3s to 8s
+            const delay = Math.random() * 5; // 0s to 5s
+            
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            particle.style.left = `${left}vw`;
+            particle.style.animationDuration = `${duration}s`;
+            particle.style.animationDelay = `${delay}s`;
+            
+            particlesContainer.appendChild(particle);
+        }
+    </script>
+</body>
+</html>
