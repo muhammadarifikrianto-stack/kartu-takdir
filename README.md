@@ -21,4 +21,5 @@ Jika Anda ingin mencoba atau mengembangkan proyek ini di komputer Anda sendiri:
 
 1. **Clone repositori ini:**
    ```bash
-   https://muhammadarifikrianto-stack.github.io/kartu-takdir/
+   (https://muhammadarifikrianto-stack.github.io/kartu-takdir/)
+   
